@@ -1,0 +1,12 @@
+{
+    "3456": {
+        "accountNumber": "3456",
+        "ownerName": "M",
+        "balance": 15000.0
+    },
+    "3778": {
+        "accountNumber": "3778",
+        "ownerName": "Jay",
+        "balance": 100723000.5
+    }
+}

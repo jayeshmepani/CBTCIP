@@ -1,0 +1,6 @@
+#1 from project root dir
+cd src
+javac -cp "../lib/*" com/library/admin/*.java com/library/database/*.java com/library/models/*.java com/library/user/*.java com/library/utils/*.java com/library/*.java
+
+#2
+java -cp "lib/*;src" com.library.LibrarySystem

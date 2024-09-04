@@ -1,0 +1,88 @@
+-- Using a Stored Procedure
+
+DELIMITER //
+
+CREATE PROCEDURE InsertBookCopies(
+    IN p_book_id INT,
+    IN p_total_copies INT,
+    IN p_issued_copies INT
+)
+BEGIN
+    DECLARE i INT DEFAULT 0;
+
+    -- Insert issued copies
+    WHILE i < p_issued_copies DO
+        INSERT INTO BookCopies (book_id, is_issued) VALUES (p_book_id, TRUE);
+        SET i = i + 1;
+    END WHILE;
+
+    -- Insert available copies
+    SET i = 0;
+    WHILE i < (p_total_copies - p_issued_copies) DO
+        INSERT INTO BookCopies (book_id, is_issued) VALUES (p_book_id, FALSE);
+        SET i = i + 1;
+    END WHILE;
+END //
+
+DELIMITER ;
+
+
+-- Call the stored procedure for each book with specific parameters
+CALL InsertBookCopies(1, 31, 17);  -- For book_id 1: 31 total copies, 17 issued
+CALL InsertBookCopies(2, 53, 29);  -- For book_id 2: 53 total copies, 29 issued
+CALL InsertBookCopies(3, 17, 15);  -- For book_id 3: 17 total copies, 15 issued
+
+
+-- To verify the contents of Books, and Transactions tables
+SELECT * FROM Books;
+SELECT * FROM Transactions;
+
+-- Get Transactions for a Specific Member:
+SELECT * FROM Transactions
+WHERE member_id = 1;
+
+-- Get Transactions for a Specific Book:
+SELECT * FROM Transactions
+WHERE copy_id IN (SELECT copy_id FROM BookCopies WHERE book_id = 1);
+
+-- Query to check total, issued, and available copies
+SELECT
+    book_id,
+    COUNT(*) AS total_copies,
+    COUNT(CASE WHEN is_issued = TRUE THEN 1 END) AS issued_copies,
+    COUNT(CASE WHEN is_issued = FALSE THEN 1 END) AS available_copies
+FROM
+    BookCopies
+GROUP BY
+    book_id;
+
+
+-- Most Popular Books (Based on Number of Issues):
+
+SELECT Books.book_id, Books.title, COUNT(Transactions.transaction_id) AS times_issued
+FROM Transactions
+JOIN BookCopies ON Transactions.copy_id = BookCopies.copy_id
+JOIN Books ON BookCopies.book_id = Books.book_id
+GROUP BY Books.book_id, Books.title
+ORDER BY times_issued DESC;
+
+
+-- Books Issued in the Last 30 Days:
+
+SELECT Books.book_id, Books.title, COUNT(Transactions.transaction_id) AS times_issued
+FROM Transactions
+JOIN BookCopies ON Transactions.copy_id = BookCopies.copy_id
+JOIN Books ON BookCopies.book_id = Books.book_id
+WHERE issue_date >= CURDATE() - INTERVAL 30 DAY
+GROUP BY Books.book_id, Books.title;
+
+
+-- Books with No Available Copies:
+
+SELECT book_id, title
+FROM Books
+WHERE book_id NOT IN (
+    SELECT book_id
+    FROM BookCopies
+    WHERE is_issued = FALSE
+);

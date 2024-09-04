@@ -1,0 +1,6 @@
+#1
+javac -cp flatlaf-3.5.1.jar *.java
+
+#2
+java -cp ".;flatlaf-3.5.1.jar" ChatServer
+java -cp ".;flatlaf-3.5.1.jar" ChatClient
